@@ -14,7 +14,8 @@ type SimpleHealthCheck struct {
 }
 
 func NewSimpleHealthCheck(port string) *SimpleHealthCheck {
-	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 			return
@@ -28,7 +29,13 @@ func NewSimpleHealthCheck(port string) *SimpleHealthCheck {
 			return
 		}
 	})
-	return &SimpleHealthCheck{srv: &http.Server{Addr: port}}
+
+	return &SimpleHealthCheck{
+		srv: &http.Server{
+			Addr:    port,
+			Handler: mux,
+		},
+	}
 }
 
 func (shc *SimpleHealthCheck) Run() error {
